@@ -1,0 +1,41 @@
+name: release
+
+on:
+  push:
+    tags:
+    - 'v*'
+
+jobs:
+  release:
+    name: Build and publish for all platforms
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: 8.0.x
+
+    - name: Create dist
+      run: make all
+
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: upload-artifact
+        retention-days: 5
+        path: |
+            bin/publish_dist/ssdp-app-linux-x64
+            bin/publish_dist/ssdp-app-win-x64.exe
+            bin/publish_dist/ssdp-app-linux-arm64
+            bin/publish_dist/ssdp-app-linux-arm
+
+    - name: Upload Assets
+      uses: softprops/action-gh-release@v1
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        files: |
+            bin/publish_dist/ssdp-app-linux-x64
+            bin/publish_dist/ssdp-app-win-x64.exe
+            bin/publish_dist/ssdp-app-linux-arm64
+            bin/publish_dist/ssdp-app-linux-arm
